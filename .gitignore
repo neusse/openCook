@@ -29,6 +29,8 @@ CLAUDE.md
 
 # Server/runtime output that leaked into the repo root when scripts ran from here
 /data/
+__pycache__/
+*.pyc
 
 # Local test data provided by the user (cookbook photos, large recipe JSON) — kept local only
 /testfiles/
