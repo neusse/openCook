@@ -1,4 +1,8 @@
-param([string]$ProjectRoot = (Get-Location).Path)
+param(
+    [string]$ProjectRoot = (Get-Location).Path,
+    [ValidateSet('assembleDebug', 'testDebugUnitTest')]
+    [string]$GradleTask = 'assembleDebug'
+)
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path -LiteralPath $ProjectRoot).Path
 $jdk = Get-ChildItem -LiteralPath (Join-Path $env:ProgramFiles 'Microsoft') -Directory -Filter 'jdk-17*' |
@@ -12,7 +16,7 @@ $env:JAVA_HOME = $jdk.FullName
 $env:Path = (Join-Path $env:JAVA_HOME 'bin') + [IO.Path]::PathSeparator + $env:Path
 Push-Location $root
 try {
-    & .\gradlew.bat assembleDebug
-    if ($LASTEXITCODE -ne 0) { throw "Gradle build failed with exit code $LASTEXITCODE" }
+    & .\gradlew.bat $GradleTask
+    if ($LASTEXITCODE -ne 0) { throw "Gradle $GradleTask failed with exit code $LASTEXITCODE" }
 }
 finally { Pop-Location }

@@ -5,15 +5,33 @@ Everything about getting recipes into openCook and finding them again. All of th
 
 ## Browsing & searching
 
-The **Recipes** screen lists your whole library. Search by name and filter by tag to narrow things
-down. Recipes are grouped into **cookbooks**, so a scanned book stays together.
+The **Recipes** screen uses compact rows with a thumbnail, title, and favorite heart, so a large
+library is easy to scan. Search matches titles, tags, ingredients, categories, and cookbooks. The
+filter control in the search field includes **Liked**, which shows only favorites.
 
 Open any recipe for the full view — ingredients, steps and (if present) nutrition — plus quick
 actions: mark as **cooked**, **like** it, add it to the **meal plan**, or delete it.
 
-On a **tablet in landscape** the library shows as tiles, and a recipe opens as a cooking-friendly
-two-column view — ingredients (with the portions stepper) on the left, the steps on the right — so
+On a **tablet in landscape** a recipe opens as a cooking-friendly two-column view — ingredients
+(with the portions stepper) on the left, the steps on the right — so
 you don't scroll between them while cooking. The screen also stays awake while a recipe is open.
+Recipes with several photos show a row of thumbnails below the main photo; tap one to view it.
+
+## Import a ChefTap library
+
+The ChefTap migration tool works offline and imports small ZIP batches from one folder. Keep the
+original ChefTap export and snapshot as your recovery copy.
+
+1. On a Windows PC, run `python scripts/prepare_cheftap_import.py` from this project. It checks
+   the staged records and photos under the ignored `data/cheftap/` directory and writes batches
+   under `data/cheftap/open-cook-import/`.
+2. Copy the batch ZIPs into a folder in the phone's **Download** directory.
+3. In openCook, tap **Add recipe → Import ChefTap folder** and choose that folder.
+
+Each recipe keeps its ChefTap ID, ingredients, steps, notes, tags, source link, and all photos.
+ChefTap favorites become openCook likes. The original captured page is available from **Original
+ChefTap capture** on the recipe detail screen. The import is additive; repeated titles remain
+separate recipes. A batch report is saved in the app's private files.
 
 ## Add a recipe by hand
 

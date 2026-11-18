@@ -1,10 +1,19 @@
-&nbsp; <img src="fastlane/metadata/android/en-US/images/icon.png" alt="openCook logo" height="60"/> &nbsp;openCook [![CI](https://github.com/oliexdev/openCook/actions/workflows/ci.yml/badge.svg)](https://github.com/oliexdev/openCook/actions/workflows/ci.yml)
+&nbsp; <img src="fastlane/metadata/android/en-US/images/icon.png" alt="openCook logo" height="60"/> &nbsp;openCook [![CI](https://github.com/neusse/openCook/actions/workflows/ci.yml/badge.svg)](https://github.com/neusse/openCook/actions/workflows/ci.yml)
 =========
 Open-source recipe app that turns cookbook photos into recipes, plans your week and shares the shopping list.
+
+> **neusse/openCook fork:** This repository also contains our local-only Android
+> customization for a recovered ChefTap library: dense recipe browsing, favorites,
+> multiple photos, and bounded ChefTap imports. See the
+> [maintainer guide](docs/CUSTOM_FORK.md) for the Windows build, phone backup,
+> and private-data workflow. Personal recipes and images are not in Git.
 
 <a href="https://f-droid.org/repository/browse/?fdid=com.food.opencook" target="_blank">
   <img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" height="80"/>
 </a>
+
+The F-Droid package is upstream openCook; the custom fork currently installs
+only through a local Android build.
 
 openCook is an open-source Android app (with an optional server you host yourself). Take a
 picture of a cookbook page and it becomes a tidy, editable recipe. Plan meals for the week,
@@ -12,8 +21,10 @@ build a shared shopping list everyone can tick off, and keep it all in sync at h
 sign-up, no tracking.
 
 > [!NOTE]
-> For the latest development state, install the latest [openCook dev](https://github.com/oliexdev/openCook/releases/tag/dev-build) build from the [GitHub release page](https://github.com/oliexdev/openCook/releases) or build it yourself from source (see **Building & Running** below).
-> Please be aware that the development version, may contain bugs, and will not receive automatic updates.
+> For this fork's ChefTap migration features, build **openCook DEV** from this
+> repository using the [Windows maintainer guide](docs/CUSTOM_FORK.md). Upstream
+> release APKs do not include this fork's changes. The DEV app does not receive
+> automatic updates.
 
 # Summary :clipboard:
 

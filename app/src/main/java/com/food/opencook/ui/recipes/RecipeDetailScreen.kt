@@ -46,6 +46,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -314,7 +316,6 @@ fun RecipeDetailScreen(
             }
             return@Scaffold
         }
-        val model = imageModelFor(data.images, baseUrl)
         val onAddToShopping: () -> Unit = {
             viewModel.addToShoppingList { added ->
                 scope.launch {
@@ -334,7 +335,7 @@ fun RecipeDetailScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         // Name lives in the top bar already, so the left pane starts with the image.
-                        ImageHeader(model, liked, cooked)
+                        PhotoGallery(data, baseUrl, liked, cooked)
                         RecipeMeta(data, cookedCount)
                         IngredientsSection(data, targetServings, viewModel::setServings)
                         // Tags are secondary while cooking → bottom of the reference column.
@@ -350,6 +351,7 @@ fun RecipeDetailScreen(
                         ActionButtons(data, cooked, confirmsOtherDay, liked, onAddToShopping, onPlan, onToggleCooked, onToggleLiked, onOwnTimer)
                         InstructionsSection(data, onStepTimer)
                         NotesSection(data)
+                        OriginalChefTapSection(data.recipe.id)
                         NutritionSection(data)
                     }
                 }
@@ -358,7 +360,7 @@ fun RecipeDetailScreen(
                     Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    ImageHeader(model, liked, cooked)
+                    PhotoGallery(data, baseUrl, liked, cooked)
                     Text(data.recipe.name ?: "—", style = MaterialTheme.typography.headlineSmall)
                     RecipeMeta(data, cookedCount)
                     TagChips(data.recipe.tags)
@@ -366,6 +368,7 @@ fun RecipeDetailScreen(
                     IngredientsSection(data, targetServings, viewModel::setServings)
                     InstructionsSection(data, onStepTimer)
                     NotesSection(data)
+                    OriginalChefTapSection(data.recipe.id)
                     NutritionSection(data)
                 }
             }
@@ -495,6 +498,43 @@ private fun ImageHeader(model: Any?, liked: Boolean, cooked: Boolean, modifier: 
             exit = scaleOut() + fadeOut(),
             modifier = Modifier.align(Alignment.TopEnd),
         ) { CookedRibbon() }
+    }
+}
+
+@Composable
+private fun PhotoGallery(data: RecipeWithDetails, baseUrl: String?, liked: Boolean, cooked: Boolean) {
+    val photos = data.images.sortedBy { it.position }
+    var selected by remember(data.recipe.id) { mutableIntStateOf(0) }
+    ImageHeader(imageModelFor(photos.getOrNull(selected), baseUrl), liked, cooked)
+    if (photos.size > 1) {
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            itemsIndexed(photos) { index, photo ->
+                AsyncImage(
+                    model = imageModelFor(photo, baseUrl),
+                    contentDescription = "Photo ${index + 1} of ${photos.size}",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(72.dp).clip(RoundedCornerShape(8.dp))
+                        .clickable { selected = index },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun OriginalChefTapSection(recipeId: String) {
+    val context = LocalContext.current
+    val original = remember(recipeId) {
+        java.io.File(context.filesDir, "cheftap-original/$recipeId.html")
+            .takeIf { it.isFile }?.readText(Charsets.UTF_8)
+    } ?: return
+    var expanded by remember(recipeId) { mutableStateOf(false) }
+    TextButton(onClick = { expanded = !expanded }) { Text("Original ChefTap capture") }
+    if (expanded) {
+        Text(
+            android.text.Html.fromHtml(original, android.text.Html.FROM_HTML_MODE_COMPACT).toString(),
+            style = MaterialTheme.typography.bodyMedium,
+        )
     }
 }
 

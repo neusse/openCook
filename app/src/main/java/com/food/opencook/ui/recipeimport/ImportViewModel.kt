@@ -20,6 +20,7 @@ package com.food.opencook.ui.recipeimport
 
 import android.content.Context
 import android.net.Uri
+import android.provider.DocumentsContract
 import com.food.opencook.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -27,6 +28,7 @@ import com.food.opencook.data.image.ImageSniff
 import com.food.opencook.data.image.ImageStore
 import com.food.opencook.data.local.entity.ImageEntity
 import com.food.opencook.data.recipeimport.ImportedRecipe
+import com.food.opencook.data.recipeimport.ChefTapImporter
 import com.food.opencook.data.recipeimport.JsonLdExtractor
 import com.food.opencook.data.recipeimport.RecipeBundle
 import com.food.opencook.data.recipeimport.SourceCookbook
@@ -51,7 +53,7 @@ import javax.inject.Inject
 sealed interface ImportState {
     data object Idle : ImportState
     data class Running(val done: Int, val total: Int) : ImportState
-    data class Done(val imported: Int, val skipped: Int) : ImportState
+    data class Done(val imported: Int, val skipped: Int, val photos: Int = 0, val favorites: Int = 0) : ImportState
     data class Error(val message: String) : ImportState
 }
 
@@ -76,6 +78,7 @@ class ImportViewModel @Inject constructor(
     private val json: Json,
     private val repository: RecipeRepository,
     private val imageStore: ImageStore,
+    private val chefTapImporter: ChefTapImporter,
     private val shareImportBus: ShareImportBus,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
@@ -92,6 +95,56 @@ class ImportViewModel @Inject constructor(
     fun importFromUri(uri: Uri, limit: Int?) = launchImport(limit) {
         context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
             ?: error(context.getString(R.string.import_read_failed))
+    }
+
+    /** Select a folder of small ChefTap ZIPs once; never loads the full photo library. */
+    fun importChefTapFolder(tree: Uri) {
+        if (_state.value is ImportState.Running) return
+        viewModelScope.launch {
+            _state.value = ImportState.Running(0, 0)
+            _state.value = runCatching {
+                val batches = withContext(Dispatchers.IO) {
+                    val parent = DocumentsContract.getTreeDocumentId(tree)
+                    val children = DocumentsContract.buildChildDocumentsUriUsingTree(tree, parent)
+                    val found = mutableListOf<Pair<String, Uri>>()
+                    context.contentResolver.query(
+                        children,
+                        arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME),
+                        null, null, null,
+                    )?.use { cursor ->
+                        while (cursor.moveToNext()) {
+                            val name = cursor.getString(1)
+                            if (name.matches(Regex("cheftap-\\d{4}\\.zip"))) {
+                                found += name to DocumentsContract.buildDocumentUriUsingTree(tree, cursor.getString(0))
+                            }
+                        }
+                    }
+                    found.sortedBy { it.first }
+                }
+                require(batches.isNotEmpty()) { "No cheftap-0001.zip batches found in selected folder" }
+                var imported = 0
+                var photos = 0
+                var favorites = 0
+                val skipped = mutableListOf<String>()
+                val report = java.io.File(context.filesDir, "cheftap-import-report.txt")
+                report.writeText("ChefTap import: ${batches.size} batches\n")
+                batches.forEachIndexed { index, (name, uri) ->
+                    val result = try {
+                        chefTapImporter.import(uri)
+                    } catch (failure: Exception) {
+                        report.appendText("FAILED $name: ${failure.message}\n")
+                        throw failure
+                    }
+                    imported += result.imported
+                    photos += result.photos
+                    favorites += result.favorites
+                    skipped += result.skipped
+                    report.appendText("$name: ${result.imported} imported, ${result.photos} photos, ${result.favorites} favorites; skipped IDs: ${result.skipped}\n")
+                    _state.value = ImportState.Running(index + 1, batches.size)
+                }
+                ImportState.Done(imported, skipped.size, photos, favorites)
+            }.getOrElse { ImportState.Error(it.message ?: "ChefTap import failed; see import report") }
+        }
     }
 
     fun reset() { _state.value = ImportState.Idle }

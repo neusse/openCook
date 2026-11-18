@@ -33,6 +33,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -52,6 +59,7 @@ import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
@@ -97,6 +105,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.food.opencook.R
@@ -130,13 +141,13 @@ fun RecipesScreen(
     val cookbooks by viewModel.cookbooks.collectAsStateWithLifecycle()
     val filters by viewModel.filters.collectAsStateWithLifecycle()
     val sort by viewModel.sort.collectAsStateWithLifecycle()
-    val gridState = rememberLazyGridState()
+    val listState = rememberLazyListState()
     // Set when the user picks another order: the next (re-sorted) list starts at the top,
     // otherwise the grid would keep following whichever recipe happened to be first.
     var scrollToTop by remember { mutableStateOf(false) }
     LaunchedEffect(recipes) {
         if (scrollToTop) {
-            gridState.scrollToItem(0)
+            listState.scrollToItem(0)
             scrollToTop = false
         }
     }
@@ -274,37 +285,23 @@ fun RecipesScreen(
                 onAction = if (!filtering) onAddRecipe else null,
             )
         } else {
-            // Tablet landscape has room for tiles: 1 column on a phone, 2 on a medium width,
-            // 3 on a wide tablet. maxWidth measures the real content width (after the nav rail).
-            BoxWithConstraints(Modifier.fillMaxSize()) {
-                val cols = when {
-                    maxWidth < 600.dp -> 1
-                    maxWidth < 900.dp -> 2
-                    else -> 3
-                }
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(cols),
-                    state = gridState,
-                    contentPadding = PaddingValues(vertical = Spacing.md),
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.md),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.md),
-                ) {
-                    gridItems(recipes, key = { it.recipe.id }) { recipe ->
-                        RecipeCard(
-                            title = recipe.recipe.name ?: "—",
-                            subtitle = listOfNotNull(recipe.recipe.recipeYield, recipe.recipe.cookbook).joinToString(" · ").ifBlank { null },
-                            imageModel = imageModelFor(recipe.images, baseUrl),
-                            liked = recipe.recipe.id in likedIds,
-                            // While selecting, a tap picks instead of opening — the usual
-                            // Android pattern, entered by a long-press on any card.
-                            onClick = {
-                                if (selecting) viewModel.toggleSelected(recipe.recipe.id)
-                                else onRecipeClick(recipe.recipe.id)
-                            },
-                            onLongClick = { viewModel.toggleSelected(recipe.recipe.id) },
-                            selected = if (selecting) recipe.recipe.id in selection else null,
-                        )
-                    }
+            LazyColumn(
+                state = listState,
+                contentPadding = PaddingValues(vertical = Spacing.sm),
+            ) {
+                items(recipes, key = { it.recipe.id }) { recipe ->
+                    CompactRecipeRow(
+                        title = recipe.recipe.name ?: "—",
+                        imageModel = imageModelFor(recipe.images, baseUrl),
+                        liked = recipe.recipe.id in likedIds,
+                        selected = if (selecting) recipe.recipe.id in selection else null,
+                        onClick = {
+                            if (selecting) viewModel.toggleSelected(recipe.recipe.id)
+                            else onRecipeClick(recipe.recipe.id)
+                        },
+                        onLongClick = { viewModel.toggleSelected(recipe.recipe.id) },
+                    )
+                    HorizontalDivider()
                 }
             }
         }
@@ -374,6 +371,43 @@ fun RecipesScreen(
             onCooked = viewModel::toggleCooked,
             onClear = viewModel::clearFilters,
             onDismiss = { showFilterSheet = false },
+        )
+    }
+}
+
+/** One glanceable row per recipe, suitable for a library of several thousand. */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun CompactRecipeRow(
+    title: String,
+    imageModel: Any?,
+    liked: Boolean,
+    selected: Boolean?,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+) {
+    Row(
+        Modifier.fillMaxWidth()
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+            .background(if (selected == true) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.background)
+            .padding(vertical = 5.dp, horizontal = Spacing.xs),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.md),
+    ) {
+        AsyncImage(
+            model = imageModel,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.size(54.dp).clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+        )
+        Text(title, style = MaterialTheme.typography.bodyLarge, maxLines = 2,
+            overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+        if (liked) Icon(Icons.Filled.Favorite, contentDescription = stringResource(R.string.recipes_filter_liked),
+            tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
+        if (selected != null) TriStateCheckbox(
+            state = if (selected) ToggleableState.On else ToggleableState.Off,
+            onClick = onClick,
         )
     }
 }

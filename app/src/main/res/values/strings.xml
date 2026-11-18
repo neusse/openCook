@@ -360,6 +360,8 @@
 
     <!-- Recipe JSON import (button on the add-recipe screen) -->
     <string name="import_from_file">Import from file</string>
+    <string name="cheftap_import_folder">Import ChefTap folder</string>
+    <string name="cheftap_import_done">%1$d recipes imported, %2$d skipped, %3$d photos, %4$d favorites</string>
     <string name="import_running">Importing recipes…</string>
     <string name="import_done">%1$d imported, %2$d skipped</string>
     <string name="import_error">Import failed: %1$s</string>

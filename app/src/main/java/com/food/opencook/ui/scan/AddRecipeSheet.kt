@@ -109,6 +109,9 @@ fun AddRecipeSheet(
     val fileLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) importViewModel.importFromUri(uri, limit = null)
     }
+    val chefTapFolderLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+        if (uri != null) importViewModel.importChefTapFolder(uri)
+    }
     // Asked for once the sheet opens with a server, so the background "recipe ready"
     // notification can reach someone who leaves the app mid-scan. Non-critical: ignored.
     val notificationLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
@@ -127,7 +130,10 @@ fun AddRecipeSheet(
             // Reset only after the message: resetting re-keys this effect, which would
             // cancel — and so dismiss — the snackbar straight away.
             is ImportState.Done -> {
-                snackbarHostState.showSnackbar(resources.getString(R.string.import_done, s.imported, s.skipped))
+                val message = if (s.photos > 0) {
+                    resources.getString(R.string.cheftap_import_done, s.imported, s.skipped, s.photos, s.favorites)
+                } else resources.getString(R.string.import_done, s.imported, s.skipped)
+                snackbarHostState.showSnackbar(message)
                 importViewModel.reset()
             }
             is ImportState.Error -> {
@@ -181,6 +187,14 @@ fun AddRecipeSheet(
                     onDismiss()
                     fileLauncher.launch(arrayOf("application/json", "application/zip", "text/plain", "*/*"))
                 }
+            }
+            Spacer(Modifier.height(Spacing.lg))
+            Row(Modifier.fillMaxWidth()) {
+                AddTile(Icons.Outlined.FileOpen, stringResource(R.string.cheftap_import_folder), enabled = !importing) {
+                    onDismiss()
+                    chefTapFolderLauncher.launch(null)
+                }
+                Spacer(Modifier.weight(2f))
             }
             Spacer(Modifier.height(Spacing.lg))
             Row(Modifier.fillMaxWidth()) {

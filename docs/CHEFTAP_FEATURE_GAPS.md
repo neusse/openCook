@@ -1,5 +1,10 @@
 # ChefTap features and openCook gaps
 
+> This table records the original v0.4 release comparison. The fork's dev build now resolves
+> multi-photo import/display, original HTML retention, favorites migration, bounded ChefTap
+> batches, and compact recipe browsing. The standard backup format still excludes likes and
+> exports one photo per recipe.
+
 This inventory compares the installed ChefTap app and the recovered owner
 snapshot with openCook v0.4. It records confirmed differences that matter for
 this migration. openCook already has local recipes, search, source links, likes,

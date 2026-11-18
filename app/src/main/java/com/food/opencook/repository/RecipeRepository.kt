@@ -298,6 +298,18 @@ class RecipeRepository @Inject constructor(
         return SaveResult.Saved
     }
 
+    /** Recovery imports use stable source IDs. ChefTap legitimately has repeated titles. */
+    suspend fun importRecipeById(
+        recipe: RecipeEntity,
+        ingredients: List<IngredientEntity>,
+        instructions: List<InstructionEntity>,
+        nutrition: NutritionEntity?,
+        images: List<ImageEntity>,
+    ) {
+        require(recipe.id.isNotBlank()) { "Import recipe ID is blank" }
+        write(recipe, ingredients, instructions, nutrition, images)
+    }
+
     /**
      * Resolve a name clash by letting [recipe] take over the recipe it collides with:
      * the edited content is written onto [targetId] and the source row is deleted.
