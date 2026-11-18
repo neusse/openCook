@@ -29,6 +29,7 @@ import com.food.opencook.data.image.ImageStore
 import com.food.opencook.data.local.entity.ImageEntity
 import com.food.opencook.data.recipeimport.ImportedRecipe
 import com.food.opencook.data.recipeimport.ChefTapImporter
+import com.food.opencook.data.recipeimport.FoodWishesExtractor
 import com.food.opencook.data.recipeimport.JsonLdExtractor
 import com.food.opencook.data.recipeimport.RecipeBundle
 import com.food.opencook.data.recipeimport.SourceCookbook
@@ -151,6 +152,21 @@ class ImportViewModel @Inject constructor(
 
     fun resetShare() { _shareState.value = ShareImportState.Idle }
 
+    fun clearPendingShare() { shareImportBus.clear() }
+
+    /** A Food Wishes post has ingredients and a source video, but no Recipe JSON-LD. */
+    fun importFoodWishes(domJson: String, pageUrl: String) {
+        if (_shareState.value is ShareImportState.Fetching) return
+        viewModelScope.launch {
+            _shareState.value = ShareImportState.Fetching
+            _shareState.value = runCatching {
+                val recipe = FoodWishesExtractor.extract(domJson, pageUrl)
+                    ?: return@runCatching ShareImportState.NoRecipe
+                saveImported(recipe)
+            }.getOrElse(::failed)
+        }
+    }
+
     /**
      * Import a single recipe from a web page URL: fetch the HTML, pull the schema.org/Recipe
      * out of its JSON-LD, and save it through the same path as the file import. Mirrors the
@@ -204,6 +220,10 @@ class ImportViewModel @Inject constructor(
         val cookbook = parsed.dto.cookbook?.takeIf { it.isNotBlank() }
             ?: SourceCookbook.fromUrl(pageUrl)
         val imp = parsed.copy(dto = parsed.dto.copy(cookbook = cookbook, url = parsed.dto.url ?: pageUrl))
+        return saveImported(imp)
+    }
+
+    private suspend fun saveImported(imp: ImportedRecipe): ShareImportState {
         val info = saveOne(imp, System.currentTimeMillis())
         return when (info.result) {
             SaveResult.Saved -> ShareImportState.Saved(info.name, info.recipeId)

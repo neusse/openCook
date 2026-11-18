@@ -32,7 +32,7 @@ class SourceCookbookTest {
     private val saved = SourceCookbook.activeNames
 
     @Before fun seed() = SourceCookbook.setNames(
-        mapOf("chefkoch" to "Chefkoch", "ndr" to "NDR", "kochbar" to "Kochbar"),
+        mapOf("chefkoch" to "Chefkoch", "ndr" to "NDR", "kochbar" to "Kochbar", "foodwishes" to "Food Wishes"),
     )
 
     @After fun restore() = SourceCookbook.setNames(saved)
@@ -54,6 +54,11 @@ class SourceCookbookTest {
     fun unknownDomainIsCapitalized() {
         assertEquals("Gaumenfreundin", SourceCookbook.fromUrl("https://www.gaumenfreundin.de/rezept/x/"))
         assertEquals("Example", SourceCookbook.fromUrl("https://example.com/recipe"))
+    }
+
+    @Test
+    fun blogspotUsesTheBlogName() {
+        assertEquals("Food Wishes", SourceCookbook.fromUrl("https://foodwishes.blogspot.com/2012/11/recipe.html"))
     }
 
     @Test

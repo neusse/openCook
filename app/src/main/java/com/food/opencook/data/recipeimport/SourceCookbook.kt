@@ -69,6 +69,7 @@ object SourceCookbook {
         if (parts.size < 2) return null                          // needs at least name.tld
         if (parts.all { it.toIntOrNull() != null }) return null  // looks like an IP address
         val second = parts[parts.size - 2]
+        if (second == "blogspot" && parts.size >= 3) return parts[parts.size - 3]
         val label = if (second in SUFFIX_LABELS && parts.size >= 3) parts[parts.size - 3] else second
         return label.takeIf { it.isNotBlank() }
     }

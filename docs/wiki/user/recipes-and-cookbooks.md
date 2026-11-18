@@ -48,6 +48,13 @@ No photo needed:
 and the site loads in a built-in browser view; when a recipe is on screen, **Import this recipe**
 saves it to your library through the same reader the share sheet uses.
 
+The English board includes Closet Cooking, Food Network, NYT Cooking, Food.com, and Food Wishes.
+For Closet Cooking, Food Network, and Food Wishes, a shared link opens in this browser view so you
+can see the page and tap **Import this recipe**. NYT Cooking and Food.com links import directly when
+their recipe data is available. Food Wishes posts usually publish ingredients beside a cooking
+video rather than written steps; openCook saves the ingredients and source link, leaving steps empty
+when the post has none. A site may require you to accept cookies or sign in before its recipe loads.
+
 - The board **follows your content language**, and you can shape it: remove a tile you never use, or
   **Add** any address of your own (`chefkoch.de/rezepte`).
 - These are other people's sites, with their own ads and their own cookies — openCook is not

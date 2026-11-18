@@ -79,6 +79,7 @@ import com.food.opencook.ui.components.openAppSettings
 import com.food.opencook.ui.components.rememberLocalNetworkRequest
 import com.food.opencook.ui.discover.DiscoverScreen
 import com.food.opencook.ui.discover.WebImportScreen
+import com.food.opencook.data.recipeimport.BrowserFirstSites
 import com.food.opencook.ui.mealplan.MealPlanPickScreen
 import com.food.opencook.ui.mealplan.MealPlanScreen
 import com.food.opencook.ui.navigation.Routes
@@ -239,7 +240,15 @@ private fun MainScaffold() {
     val importViewModel: ImportViewModel = hiltViewModel()
     val pendingShareUrl by importViewModel.pendingShareUrl.collectAsStateWithLifecycle()
     LaunchedEffect(pendingShareUrl) {
-        pendingShareUrl?.let { importViewModel.importFromUrl(it) }
+        pendingShareUrl?.let { url ->
+            if (BrowserFirstSites.contains(url)) {
+                // These sites serve recipes to a browser but reject a plain URL fetch.
+                importViewModel.clearPendingShare()
+                navController.navigate(Routes.discoverWeb(url))
+            } else {
+                importViewModel.importFromUrl(url)
+            }
+        }
     }
     val shareState by importViewModel.shareState.collectAsStateWithLifecycle()
     // Resolve snackbar strings in composable scope (stringResource can't run inside the effect).

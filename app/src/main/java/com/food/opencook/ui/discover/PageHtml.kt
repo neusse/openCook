@@ -52,6 +52,23 @@ object PageHtml {
         })()
     """
 
+    /** Food Wishes publishes ingredient text in its post body instead of Recipe JSON-LD. */
+    const val COLLECT_FOOD_WISHES = """
+        (function () {
+          try {
+            if (!/^(www\.)?foodwishes\.blogspot\.com$/i.test(location.hostname)) return '';
+            var post = document.querySelector('.post-body');
+            var title = document.querySelector('.post-title');
+            if (!post || !title) return '';
+            return JSON.stringify({
+              title: (title.innerText || '').trim(),
+              lines: (post.innerText || '').split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean),
+              image: (post.querySelector('img') || {}).src || ''
+            });
+          } catch (e) { return ''; }
+        })()
+    """
+
     /**
      * `WebView.evaluateJavascript` reports its result as a **JSON value**, so a string arrives
      * quoted and escaped, and "no value" arrives as the literal `null`. Returns the real string,

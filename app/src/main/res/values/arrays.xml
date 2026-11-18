@@ -244,6 +244,11 @@
          JSON-LD (that is what the import reads). Leave the array out and the English board
          is used. -->
     <string-array name="discover_sites">
+        <item>https://www.closetcooking.com/recipes/</item>
+        <item>https://www.foodnetwork.com/recipes</item>
+        <item>https://cooking.nytimes.com/</item>
+        <item>https://www.food.com/recipes</item>
+        <item>https://foodwishes.blogspot.com/</item>
         <item>https://www.allrecipes.com/recipes/</item>
         <item>https://www.bbc.co.uk/food/recipes</item>
         <item>https://www.seriouseats.com/all-recipes-5117985</item>
@@ -261,6 +266,10 @@
          browser tile *and* the cookbook an imported recipe is filed under - one list, so the
          two can never drift apart. Merged across all languages. -->
     <string-array name="discover_site_names">
+        <item>closetcooking|Closet Cooking</item>
+        <item>nytimes|NYT Cooking</item>
+        <item>food|Food.com</item>
+        <item>foodwishes|Food Wishes</item>
         <item>allrecipes|Allrecipes</item>
         <item>bbcgoodfood|BBC Good Food</item>
         <item>bbc|BBC Food</item>

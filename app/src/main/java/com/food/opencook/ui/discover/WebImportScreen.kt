@@ -79,6 +79,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.food.opencook.BuildConfig
 import com.food.opencook.R
+import com.food.opencook.data.recipeimport.FoodWishesExtractor
 import com.food.opencook.ui.components.EmptyState
 import com.food.opencook.ui.recipeimport.ImportViewModel
 import com.food.opencook.ui.recipeimport.ShareImportState
@@ -274,6 +275,11 @@ private fun Browser(
                 hasRecipe.value = true
                 return@LaunchedEffect
             }
+            val foodWishes = PageHtml.unwrapJsString(webView.evaluate(PageHtml.COLLECT_FOOD_WISHES))
+            if (FoodWishesExtractor.extract(foodWishes, currentUrl.value) != null) {
+                hasRecipe.value = true
+                return@LaunchedEffect
+            }
             if (attempt < RECIPE_CHECKS - 1) delay(RECIPE_CHECK_DELAY_MS)
         }
     }
@@ -426,10 +432,15 @@ private suspend fun importOpenPage(
     importViewModel: ImportViewModel,
 ) {
     val blocks = PageHtml.unwrapJsString(webView.evaluate(PageHtml.COLLECT_JSON_LD))
-    if (blocks != null) {
-        importViewModel.importFromPage(PageHtml.toHtmlFragment(blocks), url)
+    if (PageHtml.looksLikeRecipe(blocks)) {
+        importViewModel.importFromPage(PageHtml.toHtmlFragment(blocks.orEmpty()), url)
     } else {
-        importViewModel.importFromUrl(url)
+        val foodWishes = PageHtml.unwrapJsString(webView.evaluate(PageHtml.COLLECT_FOOD_WISHES))
+        if (FoodWishesExtractor.extract(foodWishes, url) != null) {
+            importViewModel.importFoodWishes(foodWishes.orEmpty(), url)
+        } else {
+            importViewModel.importFromUrl(url)
+        }
     }
 }
 
