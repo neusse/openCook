@@ -24,6 +24,10 @@ the key used by this checkout. Preserve that key outside Git. Check the package
 and signing identity before any future install; never uninstall the populated
 DEV app merely to work around a signature mismatch.
 
+GitHub Actions runs the unit tests and builds the source on each push. Its
+temporary signing key is different, so it does not publish an installable APK.
+Build phone updates locally with the preserved key.
+
 ## Private library and phone backup
 
 All owner exports, images, databases, import ZIPs, and phone backups belong under
