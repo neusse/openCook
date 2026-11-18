@@ -34,10 +34,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.LazyRow
@@ -59,7 +55,6 @@ import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Tune
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
@@ -105,9 +100,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import coil3.compose.AsyncImage
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.food.opencook.R
@@ -115,8 +107,8 @@ import com.food.opencook.data.local.relation.RecipeListItem
 import com.food.opencook.ui.AppBarViewModel
 import com.food.opencook.ui.LocalSnackbarHostState
 import com.food.opencook.ui.components.AppTopBar
+import com.food.opencook.ui.components.CompactRecipeRow
 import com.food.opencook.ui.components.EmptyState
-import com.food.opencook.ui.components.RecipeCard
 import com.food.opencook.ui.review.CategoryChips
 import com.food.opencook.ui.review.MealTypeChips
 import com.food.opencook.ui.scan.AddRecipeSheet
@@ -371,43 +363,6 @@ fun RecipesScreen(
             onCooked = viewModel::toggleCooked,
             onClear = viewModel::clearFilters,
             onDismiss = { showFilterSheet = false },
-        )
-    }
-}
-
-/** One glanceable row per recipe, suitable for a library of several thousand. */
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun CompactRecipeRow(
-    title: String,
-    imageModel: Any?,
-    liked: Boolean,
-    selected: Boolean?,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit,
-) {
-    Row(
-        Modifier.fillMaxWidth()
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-            .background(if (selected == true) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.background)
-            .padding(vertical = 5.dp, horizontal = Spacing.xs),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.md),
-    ) {
-        AsyncImage(
-            model = imageModel,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.size(54.dp).clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest),
-        )
-        Text(title, style = MaterialTheme.typography.bodyLarge, maxLines = 2,
-            overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-        if (liked) Icon(Icons.Filled.Favorite, contentDescription = stringResource(R.string.recipes_filter_liked),
-            tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
-        if (selected != null) TriStateCheckbox(
-            state = if (selected) ToggleableState.On else ToggleableState.Off,
-            onClick = onClick,
         )
     }
 }

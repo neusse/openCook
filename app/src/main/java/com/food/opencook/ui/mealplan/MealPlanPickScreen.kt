@@ -18,7 +18,6 @@
 
 package com.food.opencook.ui.mealplan
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -59,7 +58,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.food.opencook.R
 import com.food.opencook.ui.components.EmptyState
-import com.food.opencook.ui.components.RecipeCard
+import com.food.opencook.ui.components.CompactRecipeRow
 import com.food.opencook.ui.recipes.RecipesViewModel
 import com.food.opencook.ui.recipes.imageModelFor
 import com.food.opencook.ui.theme.Spacing
@@ -205,16 +204,12 @@ fun MealPlanPickScreen(
 
                 LazyColumn(
                     Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = Spacing.md),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.md),
+                    contentPadding = PaddingValues(vertical = Spacing.sm),
                 ) {
                     if (proposed != null) {
                         item(key = "suggestion") {
-                            // Lifted out of the list on three counts: the wand that also sits
-                            // on "suggest the next 7 days", a tinted ground and outline, and —
-                            // the one that actually earns the space — the planner's own top
-                            // reason. That turns the card from an assertion into an argument,
-                            // and it is information nothing else on this screen carries.
+                            // Keep the planner's reason, with the same compact recipe row used
+                            // by the library so the suggestion does not consume a full screen.
                             val context = LocalContext.current
                             val why = suggestion?.reasons
                                 ?.maxByOrNull { it.weight }
@@ -238,14 +233,10 @@ fun MealPlanPickScreen(
                                         color = MaterialTheme.colorScheme.primary,
                                     )
                                 }
-                                RecipeCard(
+                                CompactRecipeRow(
                                     title = proposed.recipe.name ?: "—",
-                                    subtitle = listOfNotNull(proposed.recipe.recipeYield, proposed.recipe.cookbook)
-                                        .joinToString(" · ").ifBlank { null },
                                     imageModel = imageModelFor(proposed.images, baseUrl),
                                     liked = proposed.recipe.id in likedIds,
-                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
                                     onClick = {
                                         // Taking the planner's own pick carries its reasons, so
                                         // the dish can still explain itself on the plan.
@@ -272,9 +263,8 @@ fun MealPlanPickScreen(
                         }
                     }
                     items(rest, key = { it.recipe.id }) { recipe ->
-                        RecipeCard(
+                        CompactRecipeRow(
                             title = recipe.recipe.name ?: "—",
-                            subtitle = listOfNotNull(recipe.recipe.recipeYield, recipe.recipe.cookbook).joinToString(" · ").ifBlank { null },
                             imageModel = imageModelFor(recipe.images, baseUrl),
                             liked = recipe.recipe.id in likedIds,
                             onClick = {
@@ -282,6 +272,7 @@ fun MealPlanPickScreen(
                                 onBack()
                             },
                         )
+                        HorizontalDivider()
                     }
                 }
             }
